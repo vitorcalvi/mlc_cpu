@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  mlc:
+    build: .
+    image: mlc-amd-cpu:latest
+    restart: unless-stopped
+    container_name: mlc-llm
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    
+    # Dokploy respects these resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "15"
+          memory: 24g
+          
+    # Shared Memory Size (Important for AI models)
+    shm_size: 8g
+    
+    volumes:
+      # Persists models so you don't re-download on every redeploy
+      - mlc-models:/root/.cache/mlc_llm
+      
+    ports:
+      - "11434:11434"
+      
+    environment:
+      # CPU Optimization (Critical for AMD Ryzen/EPYC)
+      - OMP_NUM_THREADS=15
+      - MKL_NUM_THREADS=15
+      - OPENBLAS_NUM_THREADS=15
+      
+      # Memory limits to prevent OOM kills in Dokploy
+      - MALLOC_ARENA_MAX=2
+      
+    networks:
+      - dokploy-network
+
+volumes:
+  mlc-models:
+    driver: local
+
+networks:
+  dokploy-network:
+    external: true
