@@ -7,8 +7,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y git build-essential && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and install MLC LLM
+# NOTE: The package name is mlc_llm (underscore)
 RUN pip install --upgrade pip && \
-    pip install mlc-llm
+    pip install mlc_llm
 
 # Create a working directory
 WORKDIR /workspace
@@ -17,5 +18,4 @@ WORKDIR /workspace
 VOLUME ["/root/.cache/mlc_llm"]
 
 # Default command: Start MLC API Server
-# --device cpu forces CPU usage (safe for Dokploy without GPU passthrough config)
 CMD ["python", "-m", "mlc_llm.serve", "--host", "0.0.0.0", "--port", "11434", "--device", "cpu"]
